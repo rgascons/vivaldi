@@ -38,12 +38,11 @@ const appRouter = router({
   onPlaySong: publicProcedure.subscription(() => {
     return observable<string | Buffer>((emit) => {
       const onPlaySong = (data: string) => {
-        const readStream = fs.createReadStream(`./music/${data}.ogg`,
-          {
-              flags: 'r',
-              highWaterMark: 128 * 1024,
-          }
-        );
+        const readStream = fs.createReadStream(`./music/${data}.mp3`,
+        {
+            flags: 'r',
+            highWaterMark: 128 * 1024,
+        });
 
         readStream.on('data', (data) => {
           // emit data to client
@@ -52,9 +51,9 @@ const appRouter = router({
 
         readStream.on('end', function() {
           emit.next('end');
-      });
+        });
       };
-      // trigger `onPlaySong()` when `playSong` is triggered in our event emitter
+      // trigger `onPlaySong()` when `stream:song` is triggered in our event emitter
       ee.on('stream:song', onPlaySong);
       // unsubscribe function when client disconnects or stops subscribing
       return () => {
