@@ -1,8 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react'
-import { UserNav } from './components/user-nav'
-import { DataTable, columns } from './components/playlist'
-import { trpc } from './trpc';
+import React, { useEffect, useRef, useState } from 'react';
 import { Buffer } from 'buffer';
+
+import { columns, DataTable } from './components/playlist';
+import { UserNav } from './components/user-nav';
+import { trpc } from './trpc';
 
 function App() {
   const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null);
@@ -26,16 +27,16 @@ function App() {
       if (songChunks.current.length > 0 && !buffer.updating) {
         buffer.appendBuffer(songChunks.current.shift()!);
       }
-    }
+    };
 
-    buffer.addEventListener('update', function() {
-        updateBuffer();
+    buffer.addEventListener('update', function () {
+      updateBuffer();
     });
 
-    buffer.addEventListener('updateend', function() {
-        updateBuffer();
+    buffer.addEventListener('updateend', function () {
+      updateBuffer();
     });
-  })
+  });
   trpc.onPlaySong.useSubscription(undefined, {
     onData(song) {
       if (typeof song !== 'string') {
@@ -56,39 +57,46 @@ function App() {
 
   const onPlaySong = (id: string) => {
     const player = playerRef.current!;
-    const isPlaying = !!(player.currentTime > 0 && !player.paused && !player.ended && player.readyState > 2);
-    
+    const isPlaying = !!(
+      player.currentTime > 0 &&
+      !player.paused &&
+      !player.ended &&
+      player.readyState > 2
+    );
+
     if (currentlyPlaying === id) {
       if (isPlaying) player.pause();
       else player.play();
     } else {
-      if (currentlyPlaying !== null) bufferRef.current!.remove(bufferRef.current!.buffered.start(0), bufferRef.current!.buffered.end(0));
+      if (currentlyPlaying !== null)
+        bufferRef.current!.remove(
+          bufferRef.current!.buffered.start(0),
+          bufferRef.current!.buffered.end(0),
+        );
       setCurrentlyPlaying(id);
       playSong.mutate({ id });
     }
-  }
+  };
 
   return (
     <div className="hidden h-full flex-1 flex-col space-y-8 p-8 md:flex">
-        <div className="flex items-center justify-between space-y-2">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight">Welcome back!</h2>
-            <p className="text-muted-foreground">
-              Play any song!
-            </p>
-          </div>
-          <div className="flex items-center space-x-2">
-            <UserNav />
-          </div>
+      <div className="flex items-center justify-between space-y-2">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Welcome back!</h2>
+          <p className="text-muted-foreground">Play any song!</p>
         </div>
-        {songList.isSuccess && (
-          <div className="container mx-auto py-10">
-            <DataTable columns={columns(onPlaySong)} data={songList.data} />
-          </div>
-        )}
-        <video ref={playerRef} />
+        <div className="flex items-center space-x-2">
+          <UserNav />
+        </div>
       </div>
-  )
+      {songList.isSuccess && (
+        <div className="container mx-auto py-10">
+          <DataTable columns={columns(onPlaySong)} data={songList.data} />
+        </div>
+      )}
+      <video ref={playerRef} />
+    </div>
+  );
 }
 
-export default App
+export default App;
